@@ -217,7 +217,7 @@ class YouTube(object):
     
     def issue_raise(self,types):
         print('\033[1m'+'\033[37m'+'\033[41m\nSomething wrong with the '+types+ ' information collection part.\n\n\033[0m')
-        dirs = self.dirs+'Data crawling issue/'+types+' issue/'
+        dirs = self.dirs+'Data crawling issue/'+types+' issue/'+datetime.now().strftime('%Y-%m-%d')+'/'
         if not os.path.exists(dirs):
                 os.makedirs(dirs)
         
