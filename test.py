@@ -19,10 +19,10 @@ print('\n\033[1m'+'\033[94m' + 'Today is '+datetime.now().strftime('%Y-%m-%d')+"
 # In[ ]:
 
 
-print('\n\033[1mDefault file path for youtube link:\033[0m', '/Users/evaking/desktop/research assistant/social media/codes/Youtube/company youtube link.csv')
+print('\n\033[1mDefault file path for youtube link:\033[0m', '/Users/evaking/desktop/research assistant/social media/codes/Youtube/new company youtube link.csv')
 link_path = input('Please input the file path, input 1 for the default settings: \n')
 if link_path == str(1):
-    link_path = '/Users/evaking/desktop/research assistant/social media/codes/Youtube/company youtube link.csv'
+    link_path = '/Users/evaking/desktop/research assistant/social media/codes/Youtube/new company youtube link.csv'
 
 
 # In[ ]:
@@ -107,10 +107,10 @@ if dirs == str(1):
 # In[ ]:
 
 
-link_list = link_list.iloc[beg:end,:].reset_index(drop = True)
-lk = link_list.link
-st = link_list.search_term
-spno = link_list.sp500no
+short_link_list = link_list.iloc[beg:end,:].reset_index(drop = True)
+lk = short_link_list.link
+st = short_link_list.search_term
+spno = short_link_list.sp500no
 test = input('\n\033[1mPlease specify if you are testing the program or not.\033[0m (0 for testing, 1 for crawling)\n')
 
 
@@ -139,7 +139,7 @@ print('\n\033[1mKindly remind that there will be 5 minutes stop time after crawl
 
 
 #for i in range(int(start_company)-1,total):
-for i in range(len(link_list)):
+for i in range(len(short_link_list)):
 
     if pd.isna(lk)[i]:
         print('\033[1m'+'\033[30m\nThere is no youtube link for the company.\n\033[0m')
@@ -148,18 +148,20 @@ for i in range(len(link_list)):
     com_link = lk[i]
     com_name = st[i]
     sp500no = spno[i]
-    print('\033[1m'+'\033[5m'+'\033[32m\nCrawling Process: [',i+1,'/',len(link_list),'].\033[0m')
+    print('\033[1m'+'\033[5m'+'\033[32m\nCrawling Process: [',i+1,'/',len(short_link_list),'].\033[0m')
     print('\033[1m'+'\033[35m\nStart crwaling information of company:',com_name+'\n\n\033[0m')
     if craw_block == str(1):
         company = YouTube(com_name,com_link, sp500no, comment = True,test = test, dirs = dirs)
     else: 
         company = YouTube(com_name,com_link, sp500no, comment = False,test = test, dirs = dirs)
     company.run_once()
-    print('\nStop crawling for 1 min.\n\n')
-    time.sleep( tim )
+    print('\nStop crawling for',tim,'seconds.\n\n')
+    time.sleep( int(tim))
     
     if not (i+1)%10:
         print('\n\033[1mHave crawled',i+1,'companies already, stop crawling for 5 minutes for fear of crawling failure.\033[0m')
         time.sleep( 300 )
 
 print('\n\033[1m'+'\033[94m' + 'Today is '+datetime.now().strftime('%Y-%m-%d')+" and the crawling process is finished!" + '\033[0m\n')
+
+
