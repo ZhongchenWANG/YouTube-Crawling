@@ -45,12 +45,14 @@ import time
 
 
 class YouTube(object):
-    def __init__(self, search_term,url,nosp500,test = False,dirs = '/Users/evaking/desktop/research assistant/social media/codes/Youtube/data/'): # 
+    def __init__(self, search_term,url,nosp500,comment = False, test = False,dirs = '/Users/evaking/desktop/research assistant/social media/codes/Youtube/data/'): 
         self.search_term = search_term
         self.dirs = dirs
         self.url = url
         self.nosp500 = nosp500
+        self.comment = comment
         self.test = test
+        
     
     # Search for channel's information
 
@@ -69,6 +71,11 @@ class YouTube(object):
         df = pd.DataFrame(lt).T
         df.columns = ['No.SP500','name','id','subscribers','videoCount','views','url','description']
         df['search_date'] = search_date
+        
+        if pd.isna(df['videoCount'])[0]:
+            link = 'https://www.youtube.com/playlist?list=UU'+df.id[0][2:]
+            df['videoCount'] = aiotube.Playlist(link).video_count
+        
         return df
     
     
@@ -83,12 +90,6 @@ class YouTube(object):
         
         channel = self.channel_show(self.url,self.nosp500)
         self.channel_id = channel.id[0]
-        
-        
-        if pd.isna(channel['videoCount'])[0]:
-            link = 'https://www.youtube.com/playlist?list=UU'+self.channel_id[2:]
-            channel['videoCount'] = aiotube.Playlist(link).video_count
-        
         
         # save file for channel information
         dirs = self.dirs+'Data Crawling/'+self.search_term+'/channel information'
@@ -238,14 +239,17 @@ class YouTube(object):
             self.video_info_save()
         except:
             self.issue_raise('video')
-        try:
-            self.comment_info_save()
-        except:
+        
+        if self.comment:
             try:
                 self.comment_info_save()
             except:
-                self.issue_raise('video comment')
+                try:
+                    self.comment_info_save()
+                except:
+                    self.issue_raise('video comment')
         
         print('End crawling time:' + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         print('\033[1m'+'\033[36mData crawling completed.\n\n\n\033[0m')
+
 
