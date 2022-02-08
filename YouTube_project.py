@@ -41,9 +41,6 @@ import sys
 import time
 
 
-# In[1]:
-
-
 class YouTube(object):
     def __init__(self, search_term,url,nosp500,comment = False, test = False,dirs = '/Users/evaking/desktop/research assistant/social media/codes/Youtube/data/'): 
         self.search_term = search_term
@@ -52,7 +49,10 @@ class YouTube(object):
         self.nosp500 = nosp500
         self.comment = comment
         self.test = test
-        
+        self.video_error = []
+        self.video_error_flag = 0
+        self.video_comment_error = []
+        self.video_comment_error_flag = 0
     
     # Search for channel's information
 
@@ -77,8 +77,6 @@ class YouTube(object):
             df['videoCount'] = aiotube.Playlist(link).video_count
         
         return df
-    
-    
     
     ## save channel info
     def channel_info_save(self):
@@ -137,15 +135,24 @@ class YouTube(object):
     def all_video_info(self,video_id):
         df = pd.DataFrame()
         for i in tqdm(range(len(video_id))):
-            vv = Video.getInfo(video_id[i])
-            info = self.videoinfo_show(vv)
-            info['# likes'] = aiotube.Video(video_id[i]).likes
-            info['search_date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            df = pd.concat([df,info],axis = 0)
-
-        df = df.drop(columns = ['viewCount','thumbnails','channel']) #pics
-        df = df.reset_index(drop = True)
-        df = df.rename(columns={'id':'video_id'})
+            try:
+                vv = Video.getInfo(video_id[i])
+                info = self.videoinfo_show(vv)
+                info['# likes'] = aiotube.Video(video_id[i]).likes
+                info['search_date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                df = pd.concat([df,info],axis = 0)
+            except:
+                print('Fail to get video information for video:',video_id[i])
+                self.video_error.append(video_id[i])
+                self.video_error_flag = 1
+                continue
+        try:
+            df = df.drop(columns = ['viewCount','thumbnails','channel']) #pics
+            df = df.reset_index(drop = True)
+            df = df.rename(columns={'id':'video_id'})
+        except:
+            df = pd.DataFrame()
+        
         return df
     
     ## save video info
@@ -159,8 +166,13 @@ class YouTube(object):
             video_info = self.all_video_info(self.video_id[:2])
         else:
             video_info = self.all_video_info(self.video_id)
-        video_info_simple = video_info.drop(columns = ['duration','link','channel_name','allowRatings','averageRating','isLiveNow'])
-        df_videoinfo = pd.merge(all_video,video_info_simple,on=['video_id','title'])
+        
+        try:
+            video_info_simple = video_info.drop(columns = ['duration','link','channel_name','allowRatings','averageRating','isLiveNow'])
+            df_videoinfo = pd.merge(all_video,video_info_simple,on=['video_id','title'])
+        except:
+            df_videoinfo = all_video
+        
         # save file for video information
         dirs = self.dirs+'Data Crawling/'+self.search_term+'/video information'
         if not os.path.exists(dirs):
@@ -204,52 +216,69 @@ class YouTube(object):
             ct = self.video_count
         
         for i in range(ct):
-            idd = self.video_id[i]
-            comment = self.comment_extract(youtube_id = idd,language = 'en')
-            
-            # save file for video information
-            dirs = self.dirs+'Data Crawling/'+self.search_term+'/comment information/'+self.video_id[i]
-            if not os.path.exists(dirs):
-                os.makedirs(dirs)
-            comment.to_csv(dirs+'/'+self.search_term+' comment information for '+self.video_id[i]+ 'at '+
-                      datetime.now().strftime('%Y-%m-%d')+'.csv',index = False,header = True)
+            try:
+                idd = self.video_id[i]
+                comment = self.comment_extract(youtube_id = idd,language = 'en')
+
+                # save file for video information
+                dirs = self.dirs+'Data Crawling/'+self.search_term+'/comment information/'+self.video_id[i]
+                if not os.path.exists(dirs):
+                    os.makedirs(dirs)
+                comment.to_csv(dirs+'/'+self.search_term+' comment information for '+self.video_id[i]+ 'at '+
+                          datetime.now().strftime('%Y-%m-%d')+'.csv',index = False,header = True)
+            except:
+                print('Fail to get comment information for video',idd)
+                self.video_comment_error.append(idd)
+                self.video_comment_error_flag = 1
+                continue
             
         print('\033[1mComment information saved for',self.search_term+'.\n\033[0m')
     
-    def issue_raise(self,types):
+    def issue_raise(self,types,error_df):
         print('\033[1m'+'\033[37m'+'\033[41m\nSomething wrong with the '+types+ ' information collection part.\n\n\033[0m')
         dirs = self.dirs+'Data crawling issue/'+types+' issue/'+datetime.now().strftime('%Y-%m-%d')+'/'
         if not os.path.exists(dirs):
                 os.makedirs(dirs)
         
-        df = pd.DataFrame([self.search_term,self.url,datetime.now().strftime('%Y-%m-%d')]).T
-        df.columns = ['Company_Name','Link','Search_date']
+        if types == 'video' or types == 'video comment':
+            df = error_df
+        else:
+            df = pd.DataFrame([self.search_term,self.url,datetime.now().strftime('%Y-%m-%d')]).T
+            df.columns = ['Company_Name','Link','Search_date']
+            
         df.to_csv(dirs+self.search_term+ ' at '+ datetime.now().strftime('%Y-%m-%d')+'.csv',
                   index = False,header = True)
+    
+    def error_df_func(self,lt,name,issue):
+        error_df = pd.DataFrame(lt)
+        error_df.columns = [name]
+        error_df['lin'] = ['https://www.youtube.com/watch?v=' for i in range(len(error_df))]
+        error_df['link'] = error_df['lin']+error_df[name]
+        error_df = error_df.drop(['lin'],1)
+        error_df['Company name'] = [self.search_term for i in range(len(error_df))]
+        self.issue_raise(issue,error_df)
     
     # final run
     def run_once(self):
         print('Start crawling time:' + datetime.now().strftime('%Y-%m-%d %H:%M:%S')+'\n')
        
+        # channel information
         try:
             self.channel_info_save()
         except:
-            self.issue_raise('channel')
-        try:
-            self.video_info_save()
-        except:
-            self.issue_raise('video')
+            self.issue_raise('channel',pd.DataFrame())    
+       
+        # video information
+        self.video_info_save()
         
+        if self.video_error_flag:
+            self.error_df_func(self.video_error,'Error video ID','video')
+            
+        # comment information
         if self.comment:
-            try:
-                self.comment_info_save()
-            except:
-                try:
-                    self.comment_info_save()
-                except:
-                    self.issue_raise('video comment')
-        
+            self.comment_info_save()
+            if self.video_comment_error_flag:
+                self.error_df_func(self.video_comment_error,'Video ID for video comment crawling error','video comment')
+                
         print('End crawling time:' + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         print('\033[1m'+'\033[36mData crawling completed.\n\n\n\033[0m')
-
-
