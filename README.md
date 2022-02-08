@@ -17,6 +17,9 @@ You need to install the following packages for the crawling process:
 ## test.py
 Run the test.py file in your terminal.
 
+## Choose your own preference for crawling settings at the beginning:
+1. 'Please input the file path, input 1 for the default settings:':
+
 ## Changes to prevent possible crawling failure.
 1. 326 shorlisted companies (500 S&P 500 companies originally) Selection critiera: * Whether there is YouTube channel; * Whether the number of subscribers of the corresponding company is bigger than 1k. (The file name is called new company youtube link.csv)
 2. Automatically divide the all 326 companies into 7 groups (Indicating one group for one day, so the crawling frequency is per week). 50 companies for first 6 days and the remaining 26 companies on Sunday.
@@ -25,8 +28,9 @@ Run the test.py file in your terminal.
 
 ## Update
 - I have update the test.py file and YouTube_project.py file according to the changes above.
+- New update on Feb 8 2022: The program is more robust. 1. The program will raise the alert if one crawling step fails but still continue to crawl. 2. There will be a file stating the information for failed crawling.
 
 ## Attention
-The test.py file, the YouTube_project.py file and the company youtube link.csv file should be in the same folder.
+The test.py file, the YouTube_project.py file and the (new) company youtube link.csv file should be in the same folder.
 
 The program will automatically create the folder for different companies and the issue folder if there's any issue when crawling.
