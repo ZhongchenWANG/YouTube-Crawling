@@ -18,7 +18,7 @@ You need to install the following packages for the crawling process:
 Run the test.py file in your terminal.
 
 ## Choose your own preference for crawling settings at the beginning:
-1. 'Please input the file path, input 1 for the default settings:':
+1. >Please input the file path, input 1 for the default settings:>: You can input your preferred file path for new company youtube link.csv.
 
 ## Changes to prevent possible crawling failure.
 1. 326 shorlisted companies (500 S&P 500 companies originally) Selection critiera: * Whether there is YouTube channel; * Whether the number of subscribers of the corresponding company is bigger than 1k. (The file name is called new company youtube link.csv)
