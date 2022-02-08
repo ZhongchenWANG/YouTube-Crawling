@@ -35,6 +35,19 @@ total = len(link_list)
 # In[ ]:
 
 
+print('\n\033[1mDefault crawling:\033[0m', 'Crawl all the data including channel information, video information and video comment.')
+craw_block = input('Please input you preference for crawling:(Input 1 for default crawling, 2 for crwaling failure solution -- discard video comment at this stage.) \n')
+
+
+# In[ ]:
+
+
+batches = input('\n\033[1mDo you want to split the companies into 7 batches? (Input 1 for yes, 0 for no.\033[0m) \n')
+
+
+# In[ ]:
+
+
 weekday = datetime.now().weekday()
 if weekday == 0:
     weekday_name = 'Monday'
@@ -76,17 +89,15 @@ else:
 # In[ ]:
 
 
-if link_path != str(1):
-    print('\n\033[1mThe new file have',total,'companies in total.\033[0m\n')
+print('\n\033[1mThe new file have',total,'companies in total.\033[0m')
+if batches == str(1):
     print('\n\033[1m'+'\033[94m' 
-          + 'Today is '+weekday_name+" so today we will crawl the "+ dat + '\033[0m\n')
-
-
-# In[ ]:
-
-
-print('\n\033[1mDefault crawling:\033[0m', 'Crawl all the data including channel information, video information and video comment.')
-craw_block = input('Please input you preference for crawling:(Input 1 for default crawling, 2 for crwaling failure solution -- discard video comment at this stage.) \n')
+          + 'Since you want to split the companies, Today is '+weekday_name+" so today we will crawl the "+ dat + '\033[0m\n')
+    short_link_list = link_list.iloc[beg:end,:].reset_index(drop = True)
+else:
+    print('\n\033[1m'+'\033[94m' 
+          + "Since you don't want to split the companies, we will crawl all ", total, " companies in the file.\033[0m\n")
+    short_link_list = link_list
 
 
 # In[ ]:
@@ -107,7 +118,6 @@ if dirs == str(1):
 # In[ ]:
 
 
-short_link_list = link_list.iloc[beg:end,:].reset_index(drop = True)
 lk = short_link_list.link
 st = short_link_list.search_term
 spno = short_link_list.sp500no
@@ -163,5 +173,3 @@ for i in range(len(short_link_list)):
         time.sleep( 300 )
 
 print('\n\033[1m'+'\033[94m' + 'Today is '+datetime.now().strftime('%Y-%m-%d')+" and the crawling process is finished!" + '\033[0m\n')
-
-
